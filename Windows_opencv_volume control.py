@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import math
+import screen_brightness_control as sbc
 
 from ctypes import cast, POINTER
 from comtypes import CLSCTX_ALL
@@ -33,29 +34,51 @@ while True:
         index_point = [int(index.x*frame_width),int(index.y*frame_height)]
         thumb_point = [int(thumb.x*frame_width),int(thumb.y*frame_height)]
         index_thumb_intersection = [index.x*frame_width,thumb.y*frame_height]
-        cv2.circle(frame,(int(index_point[0]),int(index_point[1])),2,(255,0,0),2)
-        cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),100,(0,255,0),2)
-        cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),40,(0,255,0),2)
-        cv2.line(frame,(int(thumb_point[0]+100),int(thumb_point[1])),(int(thumb_point[0]-100),int(thumb_point[1])),(0,0,0),2)
-        cv2.line(frame,(int(thumb_point[0]),int(thumb_point[1]+100)),(int(thumb_point[0]),int(thumb_point[1]-100)),(0,0,0),2)
-        index_thumb_length = math.sqrt((index_point[0]-thumb_point[0])**2+(index_point[1]-thumb_point[1])**2)
-        index_length = math.sqrt((index_point[0]-index_thumb_intersection[0])**2+(index_point[1]-index_thumb_intersection[1])**2)
-        thumb_length = math.sqrt((thumb_point[0]-index_thumb_intersection[0])**2+(thumb_point[1]-index_thumb_intersection[1])**2)
-        if index_thumb_length < 100 and index_thumb_length > 40:
-            new_deg = int(math.degrees(math.atan(index_length/thumb_length))/4)
-            if deg!="":
-                try:
-                    if deg<new_deg:
-                        # print("up")
-                        volume.SetMasterVolumeLevel(volume.GetMasterVolumeLevel()+5.0,None)
-                    if deg>new_deg:
-                        volume.SetMasterVolumeLevel(volume.GetMasterVolumeLevel()-5.0,None)
-                        # print("down")
-                except:
-                    pass
-            print(volume.GetMasterVolumeLevel())
-            deg = new_deg
-            # print(deg)
-        
+        cv2.line(frame,(int(frame_width/2),int(0)),(int(frame_width/2),int(frame_height)),(0,0,0),2)
+        if thumb_point[0] < frame_width/2:
+            cv2.circle(frame,(int(index_point[0]),int(index_point[1])),2,(255,0,0),2)
+            cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),100,(0,255,0),2)
+            cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),40,(0,255,0),2)
+            cv2.line(frame,(int(thumb_point[0]+100),int(thumb_point[1])),(int(thumb_point[0]-100),int(thumb_point[1])),(0,0,0),2)
+            cv2.line(frame,(int(thumb_point[0]),int(thumb_point[1]+100)),(int(thumb_point[0]),int(thumb_point[1]-100)),(0,0,0),2)
+            index_thumb_length = math.sqrt((index_point[0]-thumb_point[0])**2+(index_point[1]-thumb_point[1])**2)
+            index_length = math.sqrt((index_point[0]-index_thumb_intersection[0])**2+(index_point[1]-index_thumb_intersection[1])**2)
+            thumb_length = math.sqrt((thumb_point[0]-index_thumb_intersection[0])**2+(thumb_point[1]-index_thumb_intersection[1])**2)
+            if index_thumb_length < 100 and index_thumb_length > 40:
+                new_deg = int(math.degrees(math.atan(index_length/thumb_length))/4)
+                if deg!="":
+                    try:
+                        if deg<new_deg:
+                            # print("up")
+                            volume.SetMasterVolumeLevel(volume.GetMasterVolumeLevel()+1.0,None)
+                        if deg>new_deg:
+                            volume.SetMasterVolumeLevel(volume.GetMasterVolumeLevel()-1.0,None)
+                            # print("down")
+                    except:
+                        pass
+                print(volume.GetMasterVolumeLevel())
+                deg = new_deg
+                # print(deg)
+        if thumb_point[0] > frame_width/2:
+            cv2.circle(frame,(int(index_point[0]),int(index_point[1])),2,(255,0,0),2)
+            cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),100,(0,0,255),2)
+            cv2.circle(frame,(int(thumb_point[0]),int(thumb_point[1])),40,(0,0,255),2)
+            cv2.line(frame,(int(thumb_point[0]+100),int(thumb_point[1])),(int(thumb_point[0]-100),int(thumb_point[1])),(0,0,0),2)
+            cv2.line(frame,(int(thumb_point[0]),int(thumb_point[1]+100)),(int(thumb_point[0]),int(thumb_point[1]-100)),(0,0,0),2)
+            index_thumb_length = math.sqrt((index_point[0]-thumb_point[0])**2+(index_point[1]-thumb_point[1])**2)
+            index_length = math.sqrt((index_point[0]-index_thumb_intersection[0])**2+(index_point[1]-index_thumb_intersection[1])**2)
+            thumb_length = math.sqrt((thumb_point[0]-index_thumb_intersection[0])**2+(thumb_point[1]-index_thumb_intersection[1])**2)
+            if index_thumb_length < 100 and index_thumb_length > 40:
+                new_deg = int(math.degrees(math.atan(index_length/thumb_length))/4)
+                if deg!="":
+                    try:
+                        if deg<new_deg:
+                            sbc.set_brightness(sbc.get_brightness()[0]+10)
+                        if deg>new_deg:
+                            sbc.set_brightness(sbc.get_brightness()[0]-10)
+                    except:
+                        pass
+                print(sbc.get_brightness())
+                deg = new_deg
     cv2.imshow('Virtual Mouse', frame)
     cv2.waitKey(1)
